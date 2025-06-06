@@ -1,0 +1,7 @@
+FROM  artifactory-kfs.habana-labs.com/docker-local/1.19.0/ubuntu22.04/habanalabs/pytorch-installer-2.5.1:1.19.0-561
+RUN apt-get update && \
+    apt-get install -y curl && \
+    curl -L https://github.com/etcd-io/etcd/releases/download/v3.5.1/etcd-v3.5.1-linux-amd64.tar.gz \
+    | tar xz && \
+    mv etcd-v3.5.1-linux-amd64/etcdctl /usr/local/bin/ && \
+    rm -rf etcd-v3.5.1-linux-amd64

@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  etcd:
+    image: quay.io/coreos/etcd:v3.5.1
+    container_name: etcd
+    ports:
+      - "2379:2379"  # Expose client port
+      - "2380:2380"
+    command: >
+      etcd
+      --name etcd
+      --data-dir /etcd-data
+      --initial-advertise-peer-urls http://etcd:2380
+      --listen-peer-urls http://0.0.0.0:2380
+      --advertise-client-urls http://0.0.0.0:2379
+      --listen-client-urls http://0.0.0.0:2379
+      --initial-cluster etcd=http://etcd:2380
+      --initial-cluster-state new
+    tmpfs:
+      - /etcd-data
+    networks:
+      - ucxnet
+  
+
+  ytang-ucx:
+    image: ytang-ucx
+    container_name: ytang-ucx
+    build:
+      context: .
+      dockerfile: Dockerfile.gaudi
+      args:
+        HTTP_PROXY: http://proxy1-jf.intel.com:911
+        HTTPS_PROXY: http://proxy1-jf.intel.com:912
+    environment:
+      - HABANA_VISIBLE_DEVICES=all
+      - OMPI_MCA_btl_vader_single_copy_mechanism=none
+      - NO_PROXY=etcd,localhost,127.0.0.1
+    cap_add:
+      - SYS_NICE
+      - SYS_PTRACE
+      - NET_ADMIN
+      - NET_RAW
+    devices:
+      - /dev:/dev
+    ipc: host
+    volumes:
+      - ./:/workspace
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+    privileged: true
+    networks:
+      - ucxnet
+
+networks:
+  ucxnet:
+    driver: bridge
+
